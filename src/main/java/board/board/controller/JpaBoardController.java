@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import board.board.dto.BoardFileResDto;
 import board.board.dto.BoardReqDto;
 import board.board.dto.BoardResDto;
 import org.apache.commons.io.FileUtils;
@@ -34,19 +35,9 @@ public class JpaBoardController {
 
     @Autowired
     private JpaBoardService jpaBoardService;
-
     @Autowired
-    private board.common.FileUtils fileUtils;
+    private board.common.FileJpaUtils fileJpaUtils;
 
-//    @RequestMapping(value = "/jpa/board", method = RequestMethod.GET)
-//    public ModelAndView openBoardList(ModelMap model) throws Exception {
-//        ModelAndView mv = new ModelAndView("/board/jpaBoardList");
-//
-//        List<BoardEntity> list = jpaBoardService.selectBoardList();
-//        mv.addObject("list", list);
-//
-//        return mv;
-//    }
     @RequestMapping(value = "/jpa/board", method = RequestMethod.GET)
     public ModelAndView openBoardList(ModelMap model) throws Exception {
         ModelAndView mv = new ModelAndView("/board/jpaBoardList");
@@ -59,28 +50,22 @@ public class JpaBoardController {
 
     //글을 추가할때 필요한 부분
     @RequestMapping(value = "/jpa/board/write", method = RequestMethod.GET)
-    public String openBoardWrite() throws Exception {
+    public String openBoardWrite(){
         return "/board/jpaBoardWrite";
     }
 
     //글을 적고 저장할때 필요한 부분
-//    @RequestMapping(value = "/jpa/board/write", method = RequestMethod.POST)
-//    public String writeBoard(BoardEntity board, MultipartHttpServletRequest multipartHttpServletRequest) throws Exception {
-//        jpaBoardService.saveBoard(board, multipartHttpServletRequest);
-//        return "redirect:/jpa/board";
-//    }
         @RequestMapping(value = "/jpa/board/write", method = RequestMethod.POST)
         public String writeBoard(BoardReqDto board, MultipartHttpServletRequest multipartHttpServletRequest) throws Exception {
         jpaBoardService.saveBoard(board, multipartHttpServletRequest);
         return "redirect:/jpa/board";
     }
 
-
     @RequestMapping(value = "/jpa/board/{boardIdx}", method = RequestMethod.GET)
     public ModelAndView openBoardDetail(@PathVariable("boardIdx") int boardIdx) throws Exception {
         ModelAndView mv = new ModelAndView("/board/jpaBoardDetail");
 
-        BoardEntity board = jpaBoardService.selectBoardDetail(boardIdx);
+        BoardResDto board = jpaBoardService.selectBoardDetail(boardIdx);
         mv.addObject("board", board);
 
         return mv;
@@ -88,16 +73,16 @@ public class JpaBoardController {
 
     //	파일추가 할때 기존 파일과 합쳐서 update
     @RequestMapping(value = "/jpa/board/{boardIdx}", method = RequestMethod.POST)
-    public String updateBoard(@PathVariable("boardIdx") int boardIdx, BoardEntity board, MultipartHttpServletRequest multipartHttpServletRequest) throws Exception {
-        jpaBoardService.saveBoard2(boardIdx, board, multipartHttpServletRequest);
+    public String updateBoard(@PathVariable("boardIdx") int boardIdx, BoardReqDto board, MultipartHttpServletRequest multipartHttpServletRequest) throws Exception {
+        jpaBoardService.updateBoard(boardIdx, board, multipartHttpServletRequest);
         return "redirect:/jpa/board";
     }
 
     @RequestMapping(value = "/jpa/board/{boardIdx}", method = RequestMethod.DELETE)
     public String deleteBoard(@PathVariable("boardIdx") int boardIdx) throws Exception {
-        List<BoardFileEntity> fileEntityList = jpaBoardService.selectBoardFileList(boardIdx);
+        List<BoardFileResDto> fileResDtoList = jpaBoardService.selectBoardFileList(boardIdx);
 
-        fileUtils.deleteBoardFile(fileEntityList);
+        fileJpaUtils.deleteBoardFile(fileResDtoList);
         jpaBoardService.deleteBoard(boardIdx);
         return "redirect:/jpa/board";
     }
@@ -106,7 +91,7 @@ public class JpaBoardController {
     public String deleteFile(@RequestParam int idx) throws Exception {
         List<String> filePathList = jpaBoardService.selectBoardFilePathList(idx);
 
-        fileUtils.deleteFile_Path(filePathList);
+        fileJpaUtils.deleteFile_Path(filePathList);
         jpaBoardService.deleteBoardFile(idx);
         return "redirect:/jpa/board/";
     }
@@ -130,7 +115,7 @@ public class JpaBoardController {
     @RequestMapping(value = "/jpa/board/search", method = RequestMethod.GET)
     public String searchBoard(@RequestParam String searchKeyword, Model model) throws Exception {
 
-        List<BoardEntity> list = jpaBoardService.searchingBoardByTitle(searchKeyword);
+        List<BoardResDto> list = jpaBoardService.searchingBoardByTitle(searchKeyword);
 
         model.addAttribute("list", list);
 

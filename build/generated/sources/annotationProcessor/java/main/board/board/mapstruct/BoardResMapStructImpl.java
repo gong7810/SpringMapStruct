@@ -12,33 +12,33 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2023-11-11T14:47:44+0900",
+    date = "2023-11-11T17:53:52+0900",
     comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-5.2.1.jar, environment: Java 11.0.11 (Oracle Corporation)"
 )
 @Component
 public class BoardResMapStructImpl implements BoardResMapStruct {
 
     @Override
-    public BoardResDto toDto(BoardEntity entiy) {
-        if ( entiy == null ) {
+    public BoardResDto toDto(BoardEntity entity) {
+        if ( entity == null ) {
             return null;
         }
 
         BoardResDto boardResDto = new BoardResDto();
 
-        boardResDto.setBoardIdx( entiy.getBoardIdx() );
-        boardResDto.setTitle( entiy.getTitle() );
-        boardResDto.setContents( entiy.getContents() );
-        boardResDto.setHitCnt( entiy.getHitCnt() );
-        boardResDto.setCreatorId( entiy.getCreatorId() );
-        if ( entiy.getCreatedDatetime() != null ) {
-            boardResDto.setCreatedDatetime( DateTimeFormatter.ISO_LOCAL_DATE_TIME.format( entiy.getCreatedDatetime() ) );
+        boardResDto.setBoardIdx( entity.getBoardIdx() );
+        boardResDto.setTitle( entity.getTitle() );
+        boardResDto.setContents( entity.getContents() );
+        boardResDto.setHitCnt( entity.getHitCnt() );
+        boardResDto.setCreatorId( entity.getCreatorId() );
+        if ( entity.getCreatedDatetime() != null ) {
+            boardResDto.setCreatedDatetime( DateTimeFormatter.ISO_LOCAL_DATE_TIME.format( entity.getCreatedDatetime() ) );
         }
-        boardResDto.setUpdaterId( entiy.getUpdaterId() );
-        if ( entiy.getUpdatedDatetime() != null ) {
-            boardResDto.setUpdatedDatetime( DateTimeFormatter.ISO_LOCAL_DATE_TIME.format( entiy.getUpdatedDatetime() ) );
+        boardResDto.setUpdaterId( entity.getUpdaterId() );
+        if ( entity.getUpdatedDatetime() != null ) {
+            boardResDto.setUpdatedDatetime( DateTimeFormatter.ISO_LOCAL_DATE_TIME.format( entity.getUpdatedDatetime() ) );
         }
-        boardResDto.setFileList( boardFileEntityListToBoardFileResDtoList( entiy.getFileList() ) );
+        boardResDto.setFileList( boardFileEntityListToBoardFileResDtoList( entity.getFileList() ) );
 
         return boardResDto;
     }

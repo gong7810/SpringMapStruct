@@ -7,9 +7,12 @@ import java.util.List;
 import java.util.Optional;
 
 import board.board.dto.BoardFileReqDto;
+import board.board.dto.BoardFileResDto;
 import board.board.dto.BoardReqDto;
 import board.board.dto.BoardResDto;
 import board.board.mapper.BoardMapper;
+import board.board.mapstruct.BoardFileReqMapStruct;
+import board.board.mapstruct.BoardFileResMapStruct;
 import board.board.mapstruct.BoardReqMapStruct;
 import board.board.mapstruct.BoardResMapStruct;
 import board.common.FileJpaUtils;
@@ -34,16 +37,14 @@ public class JpaBoardServiceImpl implements JpaBoardService {
     @Autowired
     BoardResMapStruct boardResMapStruct;
     @Autowired
+    BoardFileReqMapStruct boardFileReqMapStruct;
+    @Autowired
+    BoardFileResMapStruct boardFileResMapStruct;
+    @Autowired
     FileUtils fileUtils;
     @Autowired
     FileJpaUtils fileJpaUtils;
 
-//    @Override
-//    public List<BoardEntity> selectBoardList() throws Exception {
-//        List<BoardEntity> boardEntityList = jpaBoardRepository.findAll();
-//
-//        return boardEntityList;
-//    }
     @Override
     public List<BoardResDto> selectBoardList() throws Exception {
         List<BoardEntity> boardEntityList = jpaBoardRepository.findAll();
@@ -54,6 +55,7 @@ public class JpaBoardServiceImpl implements JpaBoardService {
     @Override public List<String> selectBoardFilePathList(int idx) throws Exception{
         List<BoardFileEntity> boardFileEntityList = jpaBoardRepository.selectBoardFile(idx);
         List<String> filePathList = new ArrayList<>();
+
         for(BoardFileEntity file : boardFileEntityList){
             String storedFilePath = Paths.get("").toAbsolutePath() + "\\" + file.getStoredFilePath();
             filePathList.add(storedFilePath);
@@ -61,73 +63,68 @@ public class JpaBoardServiceImpl implements JpaBoardService {
 
         return filePathList;
     }
+
     @Override
-    public List<BoardFileEntity> selectBoardFileList(int boardIdx) throws Exception {
+    public List<BoardFileResDto> selectBoardFileList(int boardIdx) throws Exception {
         List<BoardFileEntity> fileEntityList = jpaBoardRepository.findAllbyBoardFile(boardIdx);
 
-        return fileEntityList;
-    }
 
-//    public void saveBoard(BoardEntity board, MultipartHttpServletRequest multipartHttpServletRequest) throws Exception {
-//        List<BoardFileEntity> list = fileUtils.parseFileInfo(multipartHttpServletRequest);
-//
-//        board.setFileList(list);
-//        board.setCreatorId("admin");
-//
-//        jpaBoardRepository.save(board);
-//    }
+        return boardFileResMapStruct.toDto(fileEntityList);
+    }
 
 //    클라이언트에서 BoardReqDto로 데이터를 받아 Entity로 변환후 DB에 전달
     public void saveBoard(BoardReqDto board, MultipartHttpServletRequest multipartHttpServletRequest) throws Exception {
         List<BoardFileReqDto> list = fileJpaUtils.parseFileInfo(multipartHttpServletRequest);
-        board.setFileList(list);
+
+        if(!CollectionUtils.isEmpty(list)){
+            board.setFileList(list);
+        }
+//      파일이 있는지 확인
+
         board.setCreatorId("admin");
 
-        BoardEntity newBoard = boardReqMapStruct.toEntity(board);
+        BoardEntity inBoard = boardReqMapStruct.toEntity(board);
 
-        jpaBoardRepository.save(newBoard);
+        jpaBoardRepository.save(inBoard);
     }
 
     @Override
-    public void saveBoard2(int boardIdx, BoardEntity board, MultipartHttpServletRequest multipartHttpServletRequest) throws Exception {
+    public void updateBoard(int boardIdx, BoardReqDto board, MultipartHttpServletRequest multipartHttpServletRequest) throws Exception {
         List<BoardFileEntity> postFileList = jpaBoardRepository.findAllbyBoardFile(boardIdx);
-        List<BoardFileEntity> list = fileUtils.parseFileInfo(multipartHttpServletRequest);
-        int Count = jpaBoardRepository.findHitCount(boardIdx);
-        postFileList.addAll(list);
+        List<BoardFileReqDto> dtolist = fileJpaUtils.parseFileInfo(multipartHttpServletRequest);
 
-        board.setFileList(postFileList);
-        board.setCreatorId("admin");
-        board.setHitCnt(Count);
-        jpaBoardRepository.save(board);
+        BoardEntity inBoard = boardReqMapStruct.toEntity(board);
+
+        if (!CollectionUtils.isEmpty(dtolist)){
+            List<BoardFileEntity> Entitylist = boardFileReqMapStruct.toEntity(dtolist);
+            postFileList.addAll(Entitylist);
+
+        }
+//      새로 추가된 파일이 있는지 확인
+
+        int Count = jpaBoardRepository.findHitCount(boardIdx);
+
+        inBoard.setFileList(postFileList);
+        inBoard.setCreatorId("admin");
+        inBoard.setHitCnt(Count);
+
+        jpaBoardRepository.save(inBoard);
     }
 
     @Override
-    public BoardEntity selectBoardDetail(int boardIdx) throws Exception {
+    public BoardResDto selectBoardDetail(int boardIdx) throws Exception {
         Optional<BoardEntity> optional = jpaBoardRepository.findById(boardIdx);
         if (optional.isPresent()) {
             BoardEntity board = optional.get();
-//			if(board.getFileList().size()>0) {
-//				board.getFileList().get(0).getBoardEntity().getBoardIdx();
-//			}
+
             board.setHitCnt(board.getHitCnt() + 1);
             jpaBoardRepository.save(board);
 //			jpaBoardRepository.flush(); 도 가능
-            return board;
+
+            BoardResDto outBoard = boardResMapStruct.toDto(board);
+            return outBoard;
         } else {
             throw new NullPointerException();
-        }
-    }
-
-    @Override
-    public void updateBoard(BoardEntity board, MultipartHttpServletRequest multipartHttpServletRequest) throws Exception{
-        List<BoardFileEntity> addFileList = fileUtils.parseFileInfo(multipartHttpServletRequest);
-        List<BoardFileEntity> pro_board = board.getFileList();
-        if(CollectionUtils.isEmpty(addFileList) == false){
-            for(BoardFileEntity addfile : addFileList){
-                pro_board.add(addfile);
-            }
-            board.setFileList(pro_board);
-            jpaBoardRepository.save(board);
         }
     }
 
@@ -148,9 +145,11 @@ public class JpaBoardServiceImpl implements JpaBoardService {
     }
 
     @Override
-    public List<BoardEntity> searchingBoardByTitle(String title) throws Exception {
+    public List<BoardResDto> searchingBoardByTitle(String title) throws Exception {
         List<BoardEntity> result = jpaBoardRepository.findAllByTitleContainingOrderByCreatedDatetime(title);
 
-        return result;
+        List<BoardResDto> outBoard = boardResMapStruct.toDto(result);
+
+        return outBoard;
     }
 }
