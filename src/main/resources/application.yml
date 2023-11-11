@@ -16,7 +16,7 @@ spring:
       open-in-view: true
 #      테이블이 초기화됨
 #      hibernate:
-#        ddl-auto: create
+#        ddl-auto: update
 
 
 

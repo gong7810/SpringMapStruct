@@ -80,12 +80,9 @@ public class JpaBoardServiceImpl implements JpaBoardService {
             board.setFileList(list);
         }
 //      파일이 있는지 확인
-
         board.setCreatorId("admin");
 
-        BoardEntity inBoard = boardReqMapStruct.toEntity(board);
-
-        jpaBoardRepository.save(inBoard);
+        jpaBoardRepository.save(boardReqMapStruct.toEntity(board));
     }
 
     @Override
@@ -98,7 +95,6 @@ public class JpaBoardServiceImpl implements JpaBoardService {
         if (!CollectionUtils.isEmpty(dtolist)){
             List<BoardFileEntity> Entitylist = boardFileReqMapStruct.toEntity(dtolist);
             postFileList.addAll(Entitylist);
-
         }
 //      새로 추가된 파일이 있는지 확인
 
@@ -121,8 +117,7 @@ public class JpaBoardServiceImpl implements JpaBoardService {
             jpaBoardRepository.save(board);
 //			jpaBoardRepository.flush(); 도 가능
 
-            BoardResDto outBoard = boardResMapStruct.toDto(board);
-            return outBoard;
+            return boardResMapStruct.toDto(board);
         } else {
             throw new NullPointerException();
         }
@@ -139,17 +134,16 @@ public class JpaBoardServiceImpl implements JpaBoardService {
     }
 
     @Override
-    public BoardFileEntity selectBoardFileInformation(int boardIdx, int idx) throws Exception {
+    public BoardFileResDto selectBoardFileInformation(int boardIdx, int idx) throws Exception {
         BoardFileEntity boardFile = jpaBoardRepository.findBoardFile(boardIdx, idx);
-        return boardFile;
+
+        return boardFileResMapStruct.toDto(boardFile);
     }
 
     @Override
     public List<BoardResDto> searchingBoardByTitle(String title) throws Exception {
         List<BoardEntity> result = jpaBoardRepository.findAllByTitleContainingOrderByCreatedDatetime(title);
 
-        List<BoardResDto> outBoard = boardResMapStruct.toDto(result);
-
-        return outBoard;
+        return boardResMapStruct.toDto(result);
     }
 }

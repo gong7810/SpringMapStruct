@@ -27,9 +27,9 @@ public interface JpaBoardService {
 	void deleteBoard(int boardIdx);
 
 	void deleteBoardFile(int idx);
-	BoardFileEntity selectBoardFileInformation(int boardIdx, int idx) throws Exception;
 
-//	List<BoardEntity> searchingBoardByTitle(String title) throws Exception;
+	BoardFileResDto selectBoardFileInformation(int boardIdx, int idx) throws Exception;
+
 	List<BoardResDto> searchingBoardByTitle(String title) throws Exception;
 
 }
